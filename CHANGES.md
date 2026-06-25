@@ -227,7 +227,52 @@
 
 ---
 
-## 后续修改格式
+### M009 — 修复 CI 编译 OOM + 旧项目引用 + 抽屉图标着色
+
+**日期**：2026-06-25
+**目的**：三个修复打包在一起
+
+**修复 CI 编译 OOM**：
+- **问题**：GitHub Actions runner 有 7GB RAM，但 gradle.properties 只配了 1GB heap + 256MB metaspace，Kotlin kapt 和 D8 打包都 OOM 了
+- **修复**：heap → 3GB，metaspace → 1GB
+
+**修复旧项目引用**：
+- **问题**：编译的 APK 仍指向 InfinityLoop1308/PipePipe 的公告、Issue、FAQ 和版本检查 API
+- **修复**：全部改为 ximalu/PipePlay
+
+| 文件 | 改动 |
+|------|------|
+| `app/src/main/java/.../MainActivity.java` | 公告 URL → ximalu/PipePlay/wiki/Announcement |
+| `app/src/main/java/.../NewVersionWorker.kt` | 更新检查 API → ximalu/PipePlay/releases |
+| `app/src/main/java/.../ErrorMatcher.java` | FAQ URL → ximalu/PipePlay/wiki/FAQ |
+| `app/src/main/java/.../ErrorActivity.java` | Issues URL → ximalu/PipePlay/issues |
+| `app/build.gradle` | 版本号 CI 相关调整 |
+| `gradle.properties` | JVM args: 1024M→3072M, 256M→1024M |
+
+**修复抽屉图标显示不全**：
+- **问题**：`NavigationView` 的默认着色与矢量图自带的 `android:tint` 冲突，导致图标只显示一部分
+- **修复**：移除 15 个抽屉相关矢量图的 `android:tint`，给 NavigationView 添加 `app:itemIconTint`
+
+| 文件 | 改动 |
+|------|------|
+| `res/layout/drawer_layout.xml` | 添加 `app:itemIconTint="@color/defaultIconTint"` |
+| `res/drawable/ic_tv.xml` | 移除自带的 tint |
+| `res/drawable/ic_rss_feed.xml` | 同上 |
+| `res/drawable/ic_bookmark.xml` | 同上 |
+| `res/drawable/ic_file_download.xml` | 同上 |
+| `res/drawable/ic_history.xml` | 同上 |
+| `res/drawable/ic_settings.xml` | 同上 |
+| `res/drawable/ic_info_outline.xml` | 同上 |
+| `res/drawable/ic_whatshot.xml` | 同上 |
+| `res/drawable/ic_home.xml` | 同上 |
+| `res/drawable/ic_add_circle_outline.xml` | 同上 |
+| `res/drawable/ic_thumb_up.xml` | 同上 |
+| `res/drawable/ic_live_tv.xml` | 同上 |
+| `res/drawable/ic_stars.xml` | 同上 |
+| `res/drawable/ic_radio.xml` | 同上 |
+| `res/drawable/ic_podcast.xml` | 同上 |
+
+**编译状态**：等用户通知再编译
 
 每项修改按此格式记录：
 
@@ -242,5 +287,27 @@
 |------|------|
 | `路径/文件` | 改动说明 |
 
-**备注**：（可选）已知问题、后续计划等
-```
+**备注**：（可选）已知问题、后续处理等
+
+---
+
+## 2026-06-25
+
+### M009 — 重新生成启动器图标 + 修复订阅图标 tint
+
+**日期**：2026-06-25
+**目的**：从原始图标素材中重新正确截取蓝紫霓虹管道图标，去底后生成自适应图标和回退图标；修复抽屉菜单中订阅图标的双重 tint 问题。
+
+**涉及文件**：
+
+| 文件 | 改动 |
+|------|------|
+| `res/mipmap-{mdpi~xxxhdpi}/ic_launcher_foreground.png` | 重新生成：蓝紫霓虹管道去底，透明背景，适配自适应图标安全区 |
+| `res/mipmap-{mdpi~xxxhdpi}/ic_launcher.png` | 重新生成：同上图标叠在红色(#CD201F)背景上 |
+| `res/drawable/ic_subscriptions.xml` | 移除 `android:tint="@color/defaultIconTint"`（NavigationView 已统一着色，避免双重 tint） |
+
+**参考素材**：`reference/icon-source/` 目录存有原始图标素材和6个备选图标。
+
+**备注**：
+- 图标背景色(#CD201F)后续可考虑修改
+- 通知栏图标 `ic_pipepipe.xml` 尚未替换（PipePipe 旧图标）
